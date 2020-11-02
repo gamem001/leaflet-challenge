@@ -18,7 +18,6 @@ let myMap = L.map("map", {
 });
 
 
-
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson", function(data) {
     console.log(data)
     let earthquakes = L.geoJSON(data, {
@@ -31,32 +30,28 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
             fillColor: "teal",
             weight: 1,
             color: "lightblue",
-            opacity: .5, 
-            fillOpacity: 0.8,
+            opacity: 2, 
+            fillOpacity: .8,
           };
         return L.circleMarker(latlng, geojsonMarkerOptions);
         },
-        
+
         onEachFeature: function (feature, layer) {
-            layer.bindPopup("<h3>" + feature.properties.place + "</h3> <hr> <p>" + new Date(feature.properties.time) + "</p>");
+            layer.bindPopup("<h3>" + feature.properties.place + "</h3> <hr> <p>" + new Date(feature.properties.time) + "</p> <hr> <p>" + "Magnitutde (-1.0, 10.0): " + (feature.properties.mag) + "</p>" + "Significance (0-1000): " + (feature.properties.sig) + "</p>");
         }
     });
       earthquakes.addTo(myMap);
-    
-    let earthquakeLayer = L.geoJSON(data.features, {
-        onEachFeature: createPopups
-    });
+
       // Define a baseMaps object to hold our base layers. Need more basemaps. Then add to 'layers'
     let baseMaps = {
         "Street Map": streetmap
     };
     // Create overlay object to hold our overlay layer
     let overlayMaps = {
-        Earthquakes: earthquakes,
-        earthquakeLayer: earthquakeLayer
+        Earthquakes: earthquakes
     };
     // Create a control to toggle different maps and earthquakes
-    L.control.layers(baseMaps, overlayMaps, earthquakeLayer, {
+    L.control.layers(baseMaps, overlayMaps, {
         collapsed: false
     }).addTo(myMap);
 });
