@@ -1,12 +1,11 @@
 // Define letiables for our base layers
-let streetmap = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-    attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>',
-    tileSize: 512,
-    maxZoom: 18,
-    zoomOffset: -1,
-    id: 'mapbox/streets-v11',
-    accessToken: API_KEY
-})
+let Stamen_Terrain = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.{ext}', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 18,
+	ext: 'png'
+});
 let dark = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
   attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
   maxZoom: 18,
@@ -24,20 +23,33 @@ let myMap = L.map("map", {
     37.09, -95.71
     ],
     zoom: 5,
-    layers: [streetmap]
+    layers: [Stamen_Terrain]
     // layers: [streetmap, earthquakes]
 });
-//can't figure out how to make color based on depth
-function getColor(d) { 
-    return  d < 70 ? "e7e1ef":
-            d < 300 ? "c994c7":
-            d < 700 ? "dd1c77":
-                    "ce1256";
-}
+//can't figure out how to make color based on colors
+function getColor(d) {
+    console.log(d); 
+    let color = " "
+    if (d < 10) {
+        color = '#39edfa'
+    }
+    else if (d < 30) {
+        color = '#3425bb'
+    }
+    else if (d < 50) {
+        color = "#bb257c"
+    }
+    else {
+        color = "#dbeb06";
+    }
+    return color;
+};
+
 
 let link = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 
 d3.json(link, function(data) {
+    console.log(data);
     let earthquakes = L.geoJSON(data, {
         //another function called on each feature check it out
         pointToLayer: function style(feature, latlng) {
@@ -51,6 +63,8 @@ d3.json(link, function(data) {
             opacity: 2, 
             fillOpacity: .8,
           };
+          console.log(feature);
+
         return L.circleMarker(latlng, geojsonMarkerOptions);
         },
 
@@ -63,7 +77,7 @@ d3.json(link, function(data) {
 
       // Define a baseMaps object to hold our base layers. Need more basemaps. Then add to 'layers'
     let baseMaps = {
-        "Street Map": streetmap,
+        "Street Map": Stamen_Terrain,
         "Dark Map" : dark,
         "Topography Map" : OpenTopoMap
     };
@@ -82,16 +96,14 @@ d3.json(link, function(data) {
     legend.onAdd = function () {
 
         let div = L.DomUtil.create('div', 'info legend'),
-            grades = [-10-10, 10-30, 30-50, 50-70, 70-90, 90],
-            labels = [];
+            labels = ["less than 10", "10-30", "30-50", "50 +"],
+            colors = ['#39edfa', '#3425bb', "#bb257c", "#dbeb06"];
 
         // loop through our density intervals and generate a label with a colored square for each interval
-        for (let i = 0; i < grades.length; i++) {
+        for (let i = 0; i < colors.length; i++) {
             div.innerHTML +=
-                '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
-                grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+                '<div> <i style="background:' + (colors[i]) + '"></i> ' + labels[i] + "</div>";
         }
-
         return div;
     };
 
