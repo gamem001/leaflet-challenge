@@ -1,4 +1,4 @@
-// Define letiables for our base layers
+// use as basemap
 let Stamen_Terrain = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.{ext}', {
 	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 	subdomains: 'abcd',
@@ -6,6 +6,8 @@ let Stamen_Terrain = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terr
 	maxZoom: 18,
 	ext: 'png'
 });
+
+//another basemap layer
 let dark = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
   attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
   maxZoom: 18,
@@ -13,22 +15,23 @@ let dark = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{
   accessToken: API_KEY
 });
 
+//last basemap layer
 var OpenTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
 	maxZoom: 17,
 	attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
 });
-// Create our map, giving it the streetmap and earthquakes layers to display on load
+
+// Create our map, giving it the initial basemap for initial load
 let myMap = L.map("map", {
     center: [
     37.09, -95.71
     ],
     zoom: 5,
     layers: [Stamen_Terrain]
-    // layers: [streetmap, earthquakes]
 });
-//can't figure out how to make color based on colors
+//use 'getColor' to define color pallette for earthquake depths
 function getColor(d) {
-    console.log(d); 
+    // console.log(d); 
     let color = " "
     if (d < 10) {
         color = '#39edfa'
@@ -45,29 +48,28 @@ function getColor(d) {
     return color;
 };
 
-
+//link to pull data from
 let link = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 
+//use d3 to pull data from link above. Use pointToLayer for latlng, add styling properties.
 d3.json(link, function(data) {
-    console.log(data);
+    // console.log(data);
     let earthquakes = L.geoJSON(data, {
-        //another function called on each feature check it out
         pointToLayer: function style(feature, latlng) {
         //   console.log(latlng)
           let geojsonMarkerOptions = {
-            //can add other styling properties
             radius: feature.properties.mag * 5,
             fillColor: getColor(feature.geometry.coordinates[2]),
             weight: 1,
-            // color: "lightblue",
-            opacity: 2, 
+            opacity: 1, 
             fillOpacity: .8,
           };
-          console.log(feature);
+        //   console.log(feature);
 
         return L.circleMarker(latlng, geojsonMarkerOptions);
         },
-
+        
+        //use onEAchFeature to create popups for each marker. 
         onEachFeature: function (feature, layer) {
             layer.bindPopup("<h3>" + feature.properties.place + "</h3> <hr> <p>" + new Date(feature.properties.time) + "</p>" + "<p>" + "Magnitutde (-1.0, 10.0): " + (feature.properties.mag) + "</p>" + "Significance (0-1000): " + (feature.properties.sig) + "</p>");
         }
@@ -75,22 +77,24 @@ d3.json(link, function(data) {
     });
       earthquakes.addTo(myMap);
 
-      // Define a baseMaps object to hold our base layers. Need more basemaps. Then add to 'layers'
+      // Define a baseMaps object to hold our base layers. 
     let baseMaps = {
-        "Street Map": Stamen_Terrain,
+        "Terrain": Stamen_Terrain,
         "Dark Map" : dark,
         "Topography Map" : OpenTopoMap
     };
     
-    // Create overlay object to hold our overlay layer
+    // Create overlay object to hold our overlay layer: earthquakes.
     let overlayMaps = {
         Earthquakes: earthquakes
     };
+
     // Create a control to toggle different maps and earthquakes
     L.control.layers(baseMaps, overlayMaps, {
         collapsed: false
     }).addTo(myMap);
 
+    //create legend on bottom right of screen.
     let legend = L.control({position: 'bottomright'});
 
     legend.onAdd = function () {
