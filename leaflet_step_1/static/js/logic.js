@@ -34,16 +34,16 @@ function getColor(d) {
     // console.log(d); 
     let color = " "
     if (d < 10) {
-        color = '#39edfa'
+        color = '#f1fa6e' 
     }
     else if (d < 30) {
-        color = '#3425bb'
+        color = '#2ddce9'
     }
     else if (d < 50) {
         color = "#bb257c"
     }
     else {
-        color = "#dbeb06";
+        color = "#2719a1";
     }
     return color;
 };
@@ -101,7 +101,7 @@ d3.json(link, function(data) {
 
         let div = L.DomUtil.create('div', 'info legend'),
             labels = ["less than 10", "10-30", "30-50", "50 +"],
-            colors = ['#39edfa', '#3425bb', "#bb257c", "#dbeb06"];
+            colors = ['#f1fa6e', '#2ddce9', "#bb257c", "#2719a1"];
 
         // loop through our density intervals and generate a label with a colored square for each interval
         for (let i = 0; i < colors.length; i++) {
